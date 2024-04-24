@@ -11,10 +11,14 @@ n = 10^2;
 n_rep = 10^3;
 
 % Field size:
-A = 10^2;
+A = 10^4;
 % Number of years:
 n_years = 500;
 
+% Initial seedbank density: 
+dens_seeds = 80;
+% Initial plant density: 
+dens_plants = 1;
 
 % 1 x n_years vector of herbicide application. Each entry corresponds 
 % to one season and is a logical value stating whether the herbicide is
@@ -30,9 +34,9 @@ k_c = 0.5;
 % Factor reducing the herbicide efficiency of RW type relative to WW type:
 k_h = 0.5;
 % Number of rhizome buds produced per plant:
-b = 0.9*140;
+b = 0.93*140;
 % Number of seeds produced per plant:
-f = 0.9*13000; 
+f = 0.93*13000; 
 % Rhizome winter mortality (no tillage): 
 d_Z = 0.35;
 % Proportion of seed germination:
@@ -79,18 +83,18 @@ pResistantPlant = zeros(n_years+1, length(g));
 for l = 1:length(g)
 
 % Initial population composition:
-% Initial density of WW seeds:
-WWseedDensity = T.WWseedDensity(round(T.g,4) == round(g(l),4));
-% Initial density of RW seeds:
-RWseedDensity = T.RWseedDensity(round(T.g,4) == round(g(l),4));
-% Initial density of RR seeds:
-RRseedDensity = T.RRseedDensity(round(T.g,4) == round(g(l),4));
-% Initial density of WW plants:
-WWplantDensity = T.WWplantDensity(round(T.g,4) == round(g(l),4));
-% Initial density of RW plants:
-RWplantDensity = T.RWplantDensity(round(T.g,4) == round(g(l),4));
-% Initial density of RR plants:
-RRplantDensity = T.RRplantDensity(round(T.g,4) == round(g(l),4));
+% Initial frequency of WW seeds:
+WWseedFrequency = T.WWseedFrequency(round(T.g,4) == round(g(l),4));
+% Initial frequency of RW seeds:
+RWseedFrequency = T.RWseedFrequency(round(T.g,4) == round(g(l),4));
+% Initial frequency of RR seeds:
+RRseedFrequency = T.RRseedFrequency(round(T.g,4) == round(g(l),4));
+% Initial frequency of WW plants:
+WWplantFrequency = T.WWplantFrequency(round(T.g,4) == round(g(l),4));
+% Initial frequency of RW plants:
+RWplantFrequency = T.RWplantFrequency(round(T.g,4) == round(g(l),4));
+% Initial frequency of RR plants:
+RRplantFrequency = T.RRplantFrequency(round(T.g,4) == round(g(l),4));
 
 % Replicates:
 for j = 1:n
@@ -110,10 +114,12 @@ for i = 1:n_rep
 
     % Initial seedbank:
     % Absolute genotype frequencies (WW, RW, RR) in the initial seed bank:
-    S0 = poissrnd(A * [WWseedDensity; RWseedDensity; RRseedDensity]);
+    S0 = poissrnd(dens_seeds * A * ...
+        [WWseedFrequency; RWseedFrequency; RRseedFrequency]);
     % Initial plants:
     % Absolute genotype frequencies (WW, RW, RR) in the initial plants:
-    P0 = poissrnd(A * [WWplantDensity; RWplantDensity; RRplantDensity]);
+    P0 = poissrnd(dens_plants * A * ...
+        [WWplantFrequency; RWplantFrequency; RRplantFrequency]);
  
 
     % gives the dynamics:

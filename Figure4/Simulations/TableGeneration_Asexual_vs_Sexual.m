@@ -1,7 +1,7 @@
 %% Generation of data from MGWP (impact of asexual propagation)
 % Escape and extinction dynamics of Johnsongrass populations modeled as  
-% multiype Galton-Watson process depending on the proportion of asexual 
-% reproducion.
+% multiype Galton-Watson process with density dependent reproduction
+% depending on the proportion of asexual reproducion.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Parameters: 
@@ -54,9 +54,9 @@ f = 13000;
 rate = ((1-d_Z(1)) * b * g_Z ) / (f * (1-d_S) * g/(1 - (1-d_B) * (1-g)));
 
 % Number of rhizome buds produced per plant:
-b = (0:0.2:2) * 0.9 * 140;
+b = (0:0.2:2) * 0.93 * 140;
 % Number of seeds produced per plant:
-f = (1 + (1 - (0:0.2:2)) * rate) * 0.9 * 13000;
+f = (1 + (1 - (0:0.2:2)) * rate) * 0.93 * 13000;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 
 % Initial population composition:
@@ -119,9 +119,9 @@ avgTimeRRplant = zeros(n, length(b));
 for l = 1:length(b)
 
 % Initial population composition:
-% Initial fraction of the RR type in seeds and plants
+% Initial fraction of the RR type in seeds and plants:
 RR = T.RR(round(T.AsexualSexual,5) == round(b(l)/f(l),5));
-% Initial fraction of the RW type in seeds and plants
+% Initial fraction of the RW type in seeds and plants:
 RW = T.RW(round(T.AsexualSexual,5) == round(b(l)/f(l),5));
 
 % Replicates:
@@ -179,16 +179,20 @@ pRWplant(j, l) = sum(~isnan(RWplant((j-1)*n_rep+1:j*n_rep, l))) / n_rep;
 % Proportion of simulated populations with RR plants
 pRRplant(j, l) = sum(~isnan(RRplant((j-1)*n_rep+1:j*n_rep, l))) / n_rep;
 % Average time till resistant plants establish and rescue the population
-avgTimeEscape(j, l) = sum(timeEscaped((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
+avgTimeEscape(j, l) = ...
+    sum(timeEscaped((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
     sum(Escaped(:, 1));
 % Average time till extinction in populations going extinct
-avgTimeExtinct(j, l) = sum(timeExtinct((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
+avgTimeExtinct(j, l) = ...
+    sum(timeExtinct((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
     sum(Extinct(:, 3));
 % Average time till RW plant establishes in escaping population
-avgTimeRWplant(j, l) = sum(timeRWplant((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
+avgTimeRWplant(j, l) = ...
+    sum(timeRWplant((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
     sum(~isnan(timeRWplant((j-1)*n_rep+1:j*n_rep, l)));
 % Average time till RR plant establishes in escaping population
-avgTimeRRplant(j, l) = sum(timeRRplant((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
+avgTimeRRplant(j, l) = ...
+    sum(timeRRplant((j-1)*n_rep+1:j*n_rep, l),"omitnan") / ...
     sum(~isnan(timeRRplant((j-1)*n_rep+1:j*n_rep, l)));
 end
 

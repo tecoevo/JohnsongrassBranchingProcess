@@ -72,8 +72,8 @@ for i1 = 1:length(g)
     dens0, herb, n_years, c, k_c, k_h, g(i1), d_B(i1));
 
 % Genotype frequencies expected in the long run without weed control:
-Bank(:, i1) = (1-g(i1)) * SB(:, n_years)/A;
-Plants(:, i1) = P(:, n_years)/A;
+Bank(:, i1) = SB(:, n_years)/sum(SB(:, n_years));
+Plants(:, i1) = P(:, n_years)/sum(P(:, n_years));
 end
 
 % Create a table
@@ -81,11 +81,11 @@ T = table;
 % Assign columns to table
 T.g = g';
 T.dB = d_B';
-T.WWseedDensity = Bank(1, :)';
-T.RWseedDensity = Bank(2, :)';
-T.RRseedDensity = Bank(3, :)';
-T.WWplantDensity = Plants(1, :)';
-T.RWplantDensity = Plants(2, :)';
-T.RRplantDensity = Plants(3, :)';
+T.WWseedFrequency = Bank(1, :)';
+T.RWseedFrequency = Bank(2, :)';
+T.RRseedFrequency = Bank(3, :)';
+T.WWplantFrequency = Plants(1, :)';
+T.RWplantFrequency = Plants(2, :)';
+T.RRplantFrequency = Plants(3, :)';
 % Write table to text file 
 writetable(T, 'Table_standing_variants_seedbank_strength_1herb_10no');

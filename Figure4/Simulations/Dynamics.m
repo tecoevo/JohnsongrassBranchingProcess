@@ -1,8 +1,10 @@
-function [P, B, P_dens, escape, extinct, t_extinct] = Dynamics(A, ...
-    p_self, S0, P0, herbs, n_years, c, k_c, k_h, b, f, d_Z, d_B)
+function [P, B, P_dens, escape, extinct, t_extinct] = ...
+Dynamics(A, p_self, S0, P0, herbs, n_years, ...
+c, k_c, k_h, b, f, d_Z, d_B)
 % Dynamics gives the dynamics, potential extinction time or escape from 
-% control of a Johnsongrass population modelled as a multitype Galton-
-% Watson process over a maximum of n_years years depending on herbicde 
+% control of a Johnsongrass population modelled as a sexual multitype 
+% Galton-Watson process with intraspecific competition (density dependant 
+% reproduction) over a maximum of n_years years depending on herbicde 
 % application, start population and different ecological parameters.
 %
 %   Input: 
@@ -47,6 +49,8 @@ cr = [0, k_c*c, c];
 % Loss and natural mortality of fresh seeds over winter:
 d_S = 0.94;
 
+% Area needed for a plant to produce f seeds and b buds:
+a = 0.1;
 
 % Evolutionary:
 % Mutation rate:
@@ -69,7 +73,7 @@ MI = [1 0.5 0; 0.5 0.25 0; 0 0 0];
 MI(:, :, 2) = [0 0.5 1; 0.5 0.5 0.5; 1 0.5 0];
 MI(:, :, 3) = [0 0 0; 0 0.25 0.5; 0 0.5 1];
 % Add Mutation:
-M = (1 - mu)^2 * MI(:, :, 1)+ mu * (1 - mu) * MI(:, :, 2) + ...
+M = (1 - mu)^2 * MI(:, :, 1) + mu * (1 - mu) * MI(:, :, 2) + ...
     mu^2 * MI(:, :, 3);
 M(:, :, 2) = 2 * mu * (1 - mu) * MI(:, :, 1) + ...
     ((1 - mu)^2 + mu^2) * MI(:, :, 2) + 2 * mu * (1 - mu) * MI(:, :, 3);
@@ -120,47 +124,62 @@ for t = 1:n_years
     % Herbicide efficiency on the different genotypes:
     h_L = herbs(t)*[E_L, (1-k_h)*E_L, 0];
     h_T = herbs(t)*[E_T, (1-k_h)*E_T, 0];
+    
+    if P_dens(t) > 0
+        % Plant type frequencies (WW, RW, RR):
+        P_freq = P(:, t)/sum(P(:, t));
+    
+        % Paramters of the plant offspring distribution:
+        % 3 x 3 array with the means of the Poisson distributed numbers of 
+        % plant offspring produced by one plant via sexual reproduction. 
+        % The rows correspond to the parents type and the columns to the 
+        % offprings type. 
+        lambda1 = ...
+            f * (1 + a * P_dens(t))^(-1) * (p_self * ...
+            [diag(M(:,:,1)), diag(M(:,:,2)), diag(M(:,:,3))] + ...
+            (1 - p_self) * (P_freq(1) * [M(:,1,1), M(:,1,2), M(:,1,3)] + ...
+            P_freq(2) * [M(:,2,1), M(:,2,2), M(:,2,3)] + ...
+            P_freq(3) * [M(:,3,1), M(:,3,2), M(:,3,3)])) .* ...
+            (1 - repmat(cr',1,3)) *...
+            (1 - d_S) * g .* (1 - repmat(h_L,3,1));
+    
+        % 3 x 3 array with the means of the Poisson distributed numbers of 
+        % seed offspring produced by one plant via sexual reproduction. The 
+        % rows correspond to the parents type and the columns to the 
+        % offprings type.
+        lambda2 = f * (1 + a * P_dens(t))^(-1) * (p_self * ...
+            [diag(M(:,:,1)), diag(M(:,:,2)), diag(M(:,:,3))] + ...
+            (1 - p_self) * (P_freq(1) * [M(:,1,1), M(:,1,2), M(:,1,3)] + ...
+            P_freq(2) * [M(:,2,1), M(:,2,2), M(:,2,3)] + ...
+            P_freq(3) * [M(:,3,1), M(:,3,2), M(:,3,3)])) .* ...
+            (1 - repmat(cr',1,3)) * (1 - d_S) * (1-g);
+    
+        % 1 x 3 vector with the means of the Poisson distributed numbers of 
+        % plant offspring produced by one plant via asexual reproduction. 
+        % The rows correspond to the type.
+        lambda3 = b * (1 + a * P_dens(t))^(-1) * (1 - d_Z) * g_Z * (1 - h_T);
+    
+    
+        % Plants emerging from rhizomes and new seeds during the season t:
+        P(:, t+1) = sum(poissrnd(P(:, t) .* (lambda1 + diag(lambda3))))';
+        
+        % New seeds staying dormant during season t:
+        B(:, t+1) = sum(poissrnd(P(:, t) .* lambda2))';
+    else
+        % No plants and seeds from plants in season t:
+        P(:, t+1) = zeros(3, 1);
+        B(:, t+1) = zeros(3, 1);
+    end
 
-    % Paramters of the offspring distribution:
-    % 3 x 3 array with the means of the Poisson distributed numbers of 
-    % plant offspring produced by one plant via sexual reproduction. The 
-    % rows correspond to the parents type and the columns to the offprings
-    % type. 
-    lambda1 = ...
-        f*(p_self*[diag(M(:,:,1)),diag(M(:,:,2)),diag(M(:,:,3))].*...
-        (1 - repmat(cr',1,3)) + ...
-        [M(:,1,1),M(:,1,2),M(:,1,3)].*((1 - repmat(cr',1,3)) + ...
-        [0,0,0;1,1,1;1,1,1]*(1 - cr(1)))*(1 - p_self))*...
-        (1 - d_S)*g.*(1 - repmat(h_L,3,1));
-
-    % 3 x 3 array with the means of the Poisson distributed numbers of 
-    % seed offspring produced by one plant via sexual reproduction. The 
-    % rows correspond to the parents type and the columns to the offprings
-    % type.
-    lambda2 = f*(p_self*[diag(M(:,:,1)),diag(M(:,:,2)),diag(M(:,:,3))].*...
-        (1 - repmat(cr',1,3)) + ...
-        [M(:,1,1),M(:,1,2),M(:,1,3)].*((1 - repmat(cr',1,3)) + ...
-        [0,0,0;1,1,1;1,1,1]*(1 - cr(1)))*(1 - p_self))*(1 - d_S)*(1-g);
-
-    % 1 x 3 vector with the means of the Poisson distributed numbers of 
-    % plant offspring produced by one plant via asexual reproduction. The 
-    % rows correspond to the type.
-    lambda3 = b*(1 - d_Z)*g_Z*(1 - h_T);
-
+    % Paramters of the seed offspring distribution:
     % 3 x 3 array with the probabilities of the multinomial distributed 
     % numbers of plant and seed offspring produced by one seed. The rows 
     % correspond to the type. The first column gives the probability of 
     % producung a plant, the second of staying dormant as a seed and the 
     % third is the probability that the seed dies.
-    p = [((1 - d_B)*g*(1 - h_L))', repmat((1 - d_B)*(1 - g),3,1), ...
-        (d_B + (1 - d_B)*g*h_L)'];
+    p = [((1 - d_B) * g * (1 - h_L))', repmat((1 - d_B) * (1 - g), 3, 1), ...
+        (d_B + (1 - d_B) * g * h_L)'];
 
-
-    % Plants emerging from rhizomes and new seeds during the season t:
-    P(:, t+1) = sum(poissrnd(P(:, t).*(lambda1+diag(lambda3))))';
-    
-    % New seeds staying dormant during season t:
-    B(:, t+1) = sum(poissrnd(P(:, t).*lambda2))';
 
     % Fate of seeds in the seed bank:
     temp = multinomrand(B(:, t), p);
@@ -174,9 +193,9 @@ for t = 1:n_years
     % Plant density at the end of season t:
     P_dens(t+1) = sum(P(:, t+1)) / A;
 
-    % Stop simulation if plant density is >10 plants/m^2 and resistant 
-    % plants are present or plant and seed density is 0
-    if (P_dens(t+1) > 10) && (sum(P(2:end, t+1))>0)
+    % Stop simulation if resistant plants are present 
+    % or plant and seed density is 0
+    if sum(P(2:end, t+1))>0
         escape = 1;
         return
     elseif (P_dens(t+1) + sum(B(:, t+1))) == 0
@@ -184,7 +203,7 @@ for t = 1:n_years
         t_extinct = t;
         P(:, t+1:end) = 0;
         B(:, t+1:end) = 0;
-        P_dens(t+1) = 0;
+        P_dens(t+1:end) = 0;
         return
     end
 

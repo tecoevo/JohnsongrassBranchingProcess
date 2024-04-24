@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Parameters: 
 % Number of population replicates: 
-n_rep = 10^5;
+n_rep = 10^4;
 
 % Field size:
 A = 10^4;
@@ -32,9 +32,9 @@ k_c = 0.5;
 % Factor reducing the herbicide efficiency of RW type relative to WW type:
 k_h = 0.5;
 % Number of rhizome buds produced per plant:
-b = 0.9*140;
+b = 0.93*140;
 % Number of seeds produced per plant:
-f = 0.9*13000; 
+f = 0.93*13000; 
 % Rhizome winter mortality: 
 d_Z = 0.35;
 % Natural yearly seed mortality in the seedbank:
@@ -168,7 +168,7 @@ T1.timeRRplant = reshape(timeRRplant, n_rep*length(p_self), 1);
 T1.timeRWplantFirst = reshape(timeRWplantFirst, n_rep*length(p_self), 1);
 T1.timeRRplantFirst = reshape(timeRRplantFirst, n_rep*length(p_self), 1);
 % Write table to text file 
-writetable(T1, 'Table_MGWP_Selfing');
+writetable(T1, 'Table_MGWP_Selfing_n4');
 
 % Create a table with waiting time distribution til first resistant plant
 T2 = table;
@@ -179,4 +179,4 @@ T2.Year = repmat((0:n_years)', length(p_self), 1);
 T2.pResistantPlant = reshape(pResistantPlant/n_rep, ...
     (n_years+1)*length(p_self), 1);
 % Write table to text file 
-writetable(T2, 'Table_MGWP_WaitingTime_Selfing');
+writetable(T2, 'Table_MGWP_WaitingTime_Selfing_n4');

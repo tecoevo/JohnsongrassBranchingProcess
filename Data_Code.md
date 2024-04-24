@@ -1,4 +1,4 @@
-# Multitype Galton-Watson processes for herbicide resistance evolution
+# Assessing weed control failure: a branching process approach for probability and time of herbicide resistance evolution
 
 ## Figures and Data
 

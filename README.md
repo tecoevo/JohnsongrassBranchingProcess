@@ -1,6 +1,6 @@
 # JohnsongrassBranchingProcess
 
-This repository contains all the figures, the data from which plots were generated and the data generating code for the manuscript *Assessing weed control failure: a branching process approach for probability and time of herbicide resistance evolution*.
+This repository contains all the figures, the data from which plots were generated and the data generating code for the manuscript *Assessing the probability and time of weed control failure due to herbicide resistance evolution*.
 
 ## Figures and Data
 

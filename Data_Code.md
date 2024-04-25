@@ -1,4 +1,4 @@
-# Assessing weed control failure: a branching process approach for probability and time of herbicide resistance evolution
+# Assessing the probability and time of weed control failure due to herbicide resistance evolution
 
 ## Figures and Data
 
